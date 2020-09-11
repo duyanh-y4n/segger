@@ -28,6 +28,7 @@ target_include_directories(SEGGER PUBLIC
     ${SEGGER_CONF}
     ${SEGGER_PATH}/custom # e.g: debug_output.h
     )
+LOGGER(LOG_INFO "SEGGER: adding SEGGER_RTT")
 
 if(SEGGER_SYSVIEW STREQUAL TRUE)
     LOGGER(LOG_INFO "SEGGER: adding SEGGER_SYSVIEW")
@@ -40,28 +41,29 @@ if(SEGGER_SYSVIEW STREQUAL TRUE)
         ${SEGGER_CONF}/SEGGER_SYSVIEW_Conf.h
         )
     LOGGER(LOG_INFO "SEGGER: finding ${RTOS}")
-    target_include_directories(SEGGER PUBLIC
-        # FreeRTOS includes
-        ${FREERTOS_INC}
-        ${FREERTOS_GCC}
-        # path for FreeRTOSConfig.h
-        ${APP_INC_PATH}
-        )
-
-    if(DEFINED FREERTOSV10)
-        LOGGER(LOG_INFO "set FreeRTOSV10 for SEGGER System View")
-        target_sources(SEGGER PUBLIC
-            ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.c
-            ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.h
-            ${SEGGER_SAMPLE}/FreeRTOSV10/Config/Cortex-M/SEGGER_SYSVIEW_Config_FreeRTOS.c
-            )
+    if(${RTOS} STREQUAL freertos)
         target_include_directories(SEGGER PUBLIC
-            ${SEGGER_SAMPLE}/FreeRTOSV10
+            # FreeRTOS includes
+            ${FREERTOS_INC}
+            ${FREERTOS_GCC}
+            # path for FreeRTOSConfig.h
+            ${APP_INC_PATH}
             )
-    else()
-        LOGGER(LOG_ERR "${RTOS} for System View not yet supported")
-    endif(DEFINED FREERTOSV10)
 
+        if(DEFINED FREERTOSV10)
+            LOGGER(LOG_INFO "set FreeRTOSV10 for SEGGER System View")
+            target_sources(SEGGER PUBLIC
+                ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.c
+                ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.h
+                ${SEGGER_SAMPLE}/FreeRTOSV10/Config/Cortex-M/SEGGER_SYSVIEW_Config_FreeRTOS.c
+                )
+            target_include_directories(SEGGER PUBLIC
+                ${SEGGER_SAMPLE}/FreeRTOSV10
+                )
+        else()
+            LOGGER(LOG_ERR "${RTOS} for System View not yet supported")
+        endif(DEFINED FREERTOSV10)
+    endif(${RTOS} STREQUAL freertos)
 else()
     LOGGER(LOG_WARN "SEGGER: Skipping SEGGER_SYSVIEW")
 endif(SEGGER_SYSVIEW STREQUAL TRUE)

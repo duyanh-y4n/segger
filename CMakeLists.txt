@@ -2,7 +2,7 @@ set(SEGGER_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 set(SEGGER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/SEGGER CACHE INTERNAL "")
 set(SEGGER_CONF ${CMAKE_CURRENT_SOURCE_DIR}/Config CACHE INTERNAL "")
 set(SEGGER_SAMPLE ${CMAKE_CURRENT_SOURCE_DIR}/Sample CACHE INTERNAL "")
-include(LOGGER)
+#include(LOGGER)
 
 add_library(SEGGER 
     #${CMAKE_CURRENT_SOURCE_DIR}/HardFault/SEGGER_HardFault_Handler.c
@@ -28,10 +28,15 @@ target_include_directories(SEGGER PUBLIC
     ${SEGGER_CONF}
     ${SEGGER_PATH}/custom # e.g: debug_output.h
     )
-LOGGER(LOG_INFO "SEGGER: adding SEGGER_RTT")
+option(RTT_ACTIVE "SEGGER_RTT" ON)
+if(RTT_ACTIVE)
+    message(LOG_INFO "SEGGER: adding SEGGER_RTT")
+    target_compile_definitions(SEGGER PUBLIC RTT_ACTIVE)
+endif(RTT_ACTIVE)
 
-if(SEGGER_SYSVIEW STREQUAL TRUE)
-    LOGGER(LOG_INFO "SEGGER: adding SEGGER_SYSVIEW")
+option(SEGGER_SYSVIEW OFF "SEGGER_SYSVIEW disable")
+if(SEGGER_SYSVIEW)
+    message(LOG_INFO "SEGGER: adding SEGGER_SYSVIEW")
     target_sources(SEGGER PUBLIC
         # system view
         ${SEGGER_SRC}/SEGGER_SYSVIEW.c
@@ -40,8 +45,9 @@ if(SEGGER_SYSVIEW STREQUAL TRUE)
         ${SEGGER_SRC}/SEGGER_SYSVIEW_Int.h
         ${SEGGER_CONF}/SEGGER_SYSVIEW_Conf.h
         )
-    LOGGER(LOG_INFO "SEGGER: finding ${RTOS}")
-    if(${RTOS} STREQUAL freertos)
+    message(LOG_INFO "SEGGER: finding ${RTOS}")
+    if(FreeRTOS)
+        target_link_libraries(SEGGER freertos)
         target_include_directories(SEGGER PUBLIC
             # FreeRTOS includes
             ${FREERTOS_INC}
@@ -50,8 +56,8 @@ if(SEGGER_SYSVIEW STREQUAL TRUE)
             ${APP_INC_PATH}
             )
 
-        if(DEFINED FREERTOSV10)
-            LOGGER(LOG_INFO "set FreeRTOSV10 for SEGGER System View")
+        if(FREERTOSV10)
+            message(LOG_INFO "set FreeRTOSV10 for SEGGER System View")
             target_sources(SEGGER PUBLIC
                 ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.c
                 ${SEGGER_SAMPLE}/FreeRTOSV10/SEGGER_SYSVIEW_FreeRTOS.h
@@ -61,9 +67,9 @@ if(SEGGER_SYSVIEW STREQUAL TRUE)
                 ${SEGGER_SAMPLE}/FreeRTOSV10
                 )
         else()
-            LOGGER(LOG_ERR "${RTOS} for System View not yet supported")
-        endif(DEFINED FREERTOSV10)
-    endif(${RTOS} STREQUAL freertos)
+            message(LOG_ERR "${RTOS} for System View not yet supported")
+        endif(FREERTOSV10)
+    endif(FreeRTOS)
 else()
-    LOGGER(LOG_WARN "SEGGER: Skipping SEGGER_SYSVIEW")
-endif(SEGGER_SYSVIEW STREQUAL TRUE)
+    message(LOG_WARN "SEGGER: Skipping SEGGER_SYSVIEW")
+endif(SEGGER_SYSVIEW)
